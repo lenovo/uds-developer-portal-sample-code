@@ -1,0 +1,10 @@
+# Default ignored files
+/shelf/
+.idea/
+
+
+/target
+/device-info
+/device-info.zip
+/Hello-World.iml
+.DS_Store
