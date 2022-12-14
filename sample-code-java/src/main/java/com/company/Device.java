@@ -1,10 +1,10 @@
 //###
 //
-//  Lenovo UDS Developer Portal Sample Code
+//  Lenovo examples - UDS API calls
 //
 //  Copyright Notice:
 //
-//  Copyright (c) 2022 Lenovo
+//  Copyright (c) 2022-present Lenovo. All right reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License"); you may
 //  not use this file except in compliance with the License. You may obtain
@@ -27,38 +27,20 @@ public class Device {
   String deviceManufacturer;
   String deviceModelType;
   String deviceSerialnumber;
-  String deviceFamily;
-  String deviceEnclosureType;
   String deviceCategory;
-  String deviceId;
+
 
   public Device(
       String deviceName,
       String deviceManufacturer,
       String deviceModelType,
       String deviceSerialnumber,
-      String deviceFamily,
-      String deviceEnclosureType,
       String deviceCategory) {
     this.deviceName = deviceName;
     this.deviceManufacturer = deviceManufacturer;
     this.deviceModelType = deviceModelType;
     this.deviceSerialnumber = deviceSerialnumber;
-    this.deviceFamily = deviceFamily;
-    this.deviceEnclosureType = deviceEnclosureType;
     this.deviceCategory = deviceCategory;
-  }
-
-  public Device(
-      String deviceName,
-      String deviceManufacturer,
-      String deviceModelType,
-      String deviceSerialnumber) {
-    this.deviceName = deviceName;
-    this.deviceManufacturer = deviceManufacturer;
-    this.deviceModelType = deviceModelType;
-    this.deviceSerialnumber = deviceSerialnumber;
-    this.deviceId = deviceName;
   }
 
 }

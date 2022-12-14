@@ -1,10 +1,10 @@
 ###
 #
-# Lenovo UDS Developer Portal Sample Code
+# Lenovo examples - UDS API calls
 #
 # Copyright Notice:
 #
-# Copyright (c) 2022 Lenovo
+# Copyright (c) 2022-present Lenovo. All right reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -136,47 +136,6 @@ def get_subscription_id(org):
     return resp_json['subscriptionId']
 
 
-def create_new_device_profile(org, custom_device):
-    """
-    Creates new device in Lenovo Portal
-
-    :param org: User information
-    :return: json post response of new device
-    """
-
-    new_device_str = json.dumps(custom_device)
-    url = get_api_url(org, "device-profile-service/lcp/apis/v1/devices")
-    print("\n** RUNNING - POST {} **".format(url))
-
-    bearer_token = "Bearer {}".format(org.client_token)
-
-    headers = {
-        'Authorization': bearer_token,
-        'Content-Type': 'application/json'
-    }
-
-    try:
-        response = requests.post(url, headers=headers, data=new_device_str)
-        response.raise_for_status()
-    except requests.exceptions.HTTPError as errh:
-        print(errh)
-        raise
-    except requests.exceptions.RequestException as err:
-        print(err)
-        raise
-
-    print(response.status_code)
-    resp_json = json.loads(response.text)
-    if VERBOSE:
-        if len(resp_json['deviceState']) > 0:
-            device_status = resp_json['deviceState']['status']
-        else:
-            device_status = "Unknown"
-        print('{}, {}, {}, {}'.format(resp_json['orgDeviceId'], resp_json['deviceId'], resp_json['deviceName'],
-                                      resp_json['deviceModelName'], resp_json['deviceSerialnumber'], device_status))
-    return resp_json
-
-
 def print_devices(org):
     """
     Prints number of devices in the organization
@@ -276,16 +235,17 @@ def claim_device(org, user_device, directory_to_save='claim-device-info'):
     print('Status Code: ', response.status_code)
 
 
-def get_one_device_profile(org, org_device_id):
+def get_one_device_profile(org, mt, sn):
     """
-    Get device information from given org device ID
+    Get device information from given org and device mt and sn
 
     :param org: user information
-    :param org_device_id: desired device profile's ID
+    :param mt: desired device model type
+    :param sn: desired device serial number
     :return:
     """
     url = get_api_url(
-        org, "device-profile-service/lcp/apis/v1/devices/" + org_device_id)
+        org, "device-profile-service/v1/devices/mt/" + mt + "/sn/" + sn)
     print("\n** RUNNING - {} GET **".format(url))
 
     bearer_token = "Bearer {}".format(org.client_token)
@@ -386,23 +346,15 @@ def driver():
     account_name = "Enter your Account Name"
     client_id = "Enter your Client ID"
     client_secret = "Enter your Client Secret"
-    my_device = [{
-        'deviceName': 'Enter your deviceName here',
-        'deviceManufacturer': 'Enter your deviceManufacturer here',
-        'deviceModelType': 'Enter your deviceModelType here',
-        'deviceSerialnumber': 'Enter your deviceSerialnumber here',
-        "deviceFamily": "Enter your deviceFamily here",
-        "deviceEnclosureType": "Enter your deviceEnclosureType here",
-        "deviceCategory": "Enter your deviceCategory here"
-    }]
 
-    custom_device = {
+    my_device = {
         'deviceManufacturer': 'Enter the deviceManufacturer here',
-        'deviceModelType': 'Enter the deviceModelType here',
+        'deviceModelType': 'Enter the valid deviceModelType here',
         'deviceName': 'Enter the deviceName here',
-        'deviceId': 'Enter the deviceId here',
-        'deviceSerialnumber': 'Enter the deviceSerialnumber here'
+        'deviceSerialnumber': 'Enter the deviceSerialnumber here',
+        "deviceCategory": 'Enter the deviceCategory here'
     }
+    my_devices =[ my_device ]
 
     org = create_org(username=username, password=password, url_prefix=environment_url,
                      org_name=account_name, client_id=client_id, client_secret=client_secret)
@@ -430,18 +382,16 @@ def driver():
     #
     print_total_applications(org)
     #
-    device_profile = create_new_device_profile(org, custom_device)
+    claim_device(org, my_devices)
+    print_devices(org)
+    device_profile = get_one_device_profile(org, my_device['deviceModelType'], my_device['deviceSerialnumber'])
+    print(device_profile)
     org_device_id = device_profile["orgDeviceId"]
     if VERBOSE:
         print("orgDeviceId", org_device_id)
-    #
-    device_profile = get_one_device_profile(org, org_device_id)
-    print(device_profile)
-    claim_device(org, my_device)
-    print_devices(org)
     print_users(org)
     #
-    print("Hello World!")
+    print("Hello Device!")
 
 
 if __name__ == '__main__':

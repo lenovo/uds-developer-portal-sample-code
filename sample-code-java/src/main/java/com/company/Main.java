@@ -1,10 +1,10 @@
 //###
 //
-//  Lenovo UDS Developer Portal Sample Code
+//  Lenovo examples - UDS API calls
 //
 //  Copyright Notice:
 //
-//  Copyright (c) 2022 Lenovo
+//  Copyright (c) 2022-present Lenovo. All right reserved.
 //
 //  Licensed under the Apache License, Version 2.0 (the "License"); you may
 //  not use this file except in compliance with the License. You may obtain
@@ -59,26 +59,11 @@ public class Main {
         CHANGE TO THE INFORMATION OF YOUR DEVICE BELLOW!
     */
         return new Device(
-            "Enter your deviceName here",
-            "Enter your deviceManufacturer here",
-            "Enter your deviceModelType here",
-            "Enter your deviceSerialnumber here",
-            "Enter your deviceFamily here",
-            "Enter your deviceEnclosureType here",
-            "Enter your deviceCategory here"
-        );
-    }
-
-    private static Device getCustomDevice() {
-    /*
-        Create a Device object with custom device information to create it on UDC.
-        CHANGE TO THE INFORMATION YOU WANT BELLOW!
-    */
-        return new Device(
             "Enter the deviceName here",
             "Enter the deviceManufacturer here",
             "Enter the deviceModelType here",
-            "Enter the deviceSerialnumber here"
+            "Enter the deviceSerialnumber here",
+            "Enter the deviceCategory here"
         );
     }
 
@@ -90,7 +75,6 @@ public class Main {
 
     Organization myOrganization = getOrganization(username, password);
     Device myDevice = getClaimDevice();
-    Device customDevice = getCustomDevice();
 
     getToken(myOrganization);
     System.out.println("Account Token: " + myOrganization.token + "\n");
@@ -101,18 +85,16 @@ public class Main {
 
     printTotalApplications(myOrganization);
 
-    String orgDeviceId = createNewDevice(myOrganization, customDevice);
-    System.out.println("Org Device ID: " + orgDeviceId + "\n");
-
-    String deviceId = getOneDeviceProfile(myOrganization, orgDeviceId);
-    System.out.println("Device ID: " + deviceId + "\n");
-
     claim_device(myOrganization, myDevice);
 
     printDevices(myOrganization);
+
+    String orgDeviceId = getOneDeviceProfile(myOrganization, myDevice.deviceModelType, myDevice.deviceSerialnumber);
+    System.out.println("orgDeviceId: " + orgDeviceId + "\n");
+
     printUsers(myOrganization);
 
-    System.out.println("Hello World!");
+    System.out.println("Hello Device!");
   }
 
   public static String getApiUrl(Organization myOrg, String path) {
@@ -272,48 +254,6 @@ public class Main {
     }
   }
 
-  public static String createNewDevice(Organization myOrg, Device customDevice) throws IOException {
-    /*
-        Creates new device in Lenovo Portal.
-    */
-    JSONObject json = new JSONObject();
-    json.put("deviceManufacturer", customDevice.deviceManufacturer);
-    json.put("deviceModelType", customDevice.deviceModelType);
-    json.put("deviceName", customDevice.deviceName);
-    json.put("deviceId", customDevice.deviceId);
-    json.put("deviceSerialnumber", customDevice.deviceSerialnumber);
-
-    String params = json.toString();
-
-    String apiUrl = getApiUrl(myOrg, "device-profile-service/lcp/apis/v1/devices");
-    System.out.println("RUNNING - Create Device : " + apiUrl);
-
-    URL url = new URL(apiUrl);
-    String token = "Bearer " + myOrg.client_token;
-    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-    conn.setDoOutput(true);
-    conn.setDoInput(true);
-    conn.setRequestMethod("POST");
-    conn.setRequestProperty("Authorization", token);
-    conn.setRequestProperty("Content-Type", "application/json");
-    byte[] input = params.getBytes(StandardCharsets.UTF_8);
-    conn.getOutputStream().write(input);
-
-    try (BufferedReader br = new BufferedReader(
-        new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8))) {
-      int responseCode = conn.getResponseCode();
-      System.out.println("Response Code:" + responseCode);
-      StringBuilder response = new StringBuilder();
-      String responseLine = null;
-      while ((responseLine = br.readLine()) != null) {
-        response.append(responseLine.trim());
-      }
-      JSONObject result = new JSONObject(response.toString());
-      Map<String, String> jsonData = new Gson().fromJson(result.toString(), HashMap.class);
-      return jsonData.get("orgDeviceId");
-    }
-  }
-
   public static void claim_device(Organization myOrg, Device userDevice) throws IOException {
     /*
         Claims user device in lenovo portal, stores response in root, C:/
@@ -325,8 +265,6 @@ public class Main {
     myDeviceInfo.put("deviceManufacturer", userDevice.deviceManufacturer);
     myDeviceInfo.put("deviceModelType", userDevice.deviceModelType);
     myDeviceInfo.put("deviceSerialnumber", userDevice.deviceSerialnumber);
-    myDeviceInfo.put("deviceFamily", userDevice.deviceFamily);
-    myDeviceInfo.put("deviceEnclosureType", userDevice.deviceEnclosureType);
     myDeviceInfo.put("deviceCategory", userDevice.deviceCategory);
     json.put(myDeviceInfo);
 
@@ -393,12 +331,12 @@ public class Main {
     }
   }
 
-  public static String getOneDeviceProfile(Organization myOrg, String orgDeviceId) throws IOException {
+  public static String getOneDeviceProfile(Organization myOrg, String mt, String sn) throws IOException {
     /*
-        Get device information from given org device ID
+        Get orgDeviceId value of the device by given org, mt and sn
     */
 
-    String apiUrl = getApiUrl(myOrg, "device-profile-service/lcp/apis/v1/devices/") + orgDeviceId;
+    String apiUrl = getApiUrl(myOrg, "device-profile-service/v1/devices/mt/") + mt + "/sn/" + sn;
     System.out.println("RUNNING - Get Device Profile : " + apiUrl);
     URL url = new URL(apiUrl);
 
@@ -421,7 +359,7 @@ public class Main {
       }
       JSONObject result = new JSONObject(response.toString());
       Map<String, Object> jsonData = new Gson().fromJson(result.toString(), HashMap.class);
-      return (String) jsonData.get("deviceId");
+      return (String) jsonData.get("orgDeviceId");
     }
   }
 
